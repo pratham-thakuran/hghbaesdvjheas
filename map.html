@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Help & Mitigation Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #f2f2f2;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #004080;
+      color: #fff;
+      padding: 15px 10px;
+      text-align: center;
+      border-bottom: 2px solid #003366;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      animation: fadeIn 1s ease-in-out;
+    }
+    header h1 {
+      font-size: 24px;
+      margin: 5px;
+    }
+    /* New Navigation Dashboard (matches index.html) */
+    header nav {
+      margin: 10px 0;
+    }
+    header nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    header nav ul li {
+      margin: 0 10px;
+    }
+    header nav ul li a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+    header nav ul li a:hover,
+    header nav ul li a.active {
+      background-color: #003366;
+    }
+    header button,
+    header select {
+      background-color: #0059b3;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+      margin: 5px;
+    }
+    header button:hover,
+    header select:hover {
+      background-color: #004080;
+    }
+    header label {
+      font-size: 14px;
+      margin-right: 5px;
+    }
+    .sidebar {
+      height: 100%;
+      width: 250px;
+      position: fixed;
+      z-index: 2000;
+      top: 0;
+      right: -250px; 
+      background-color: #004080;
+      overflow-x: hidden;
+      transition: right 0.5s;
+      padding-top: 60px;
+    }
+    .sidebar a {
+      padding: 8px 32px;
+      text-decoration: none;
+      font-size: 20px;
+      color: #fff;
+      display: block;
+      transition: 0.3s;
+    }
+    .sidebar a:hover { color: #f1f1f1; }
+    .sidebar .closebtn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 36px;
+      cursor: pointer;
+    }
+    #openSidebarBtn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #004080;
+      color: #fff;
+      border: none;
+      padding: 10px 12px;
+      font-size: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 2001;
+      transition: background-color 0.3s;
+    }
+    #openSidebarBtn:hover { background-color: #003366; }
+    .hero {
+      position: relative;
+      background: linear-gradient(rgba(255,255,255,0.85), rgba(240,240,255,0.85)),
+        url('https://source.unsplash.com/1600x900/?emergency,help');
+      background-size: cover;
+      background-position: center;
+      padding: 40px 20px;
+      text-align: center;
+      border-bottom: 2px solid #003366;
+      animation: fadeIn 1s ease-in-out;
+    }
+    .hero h2 {
+      font-size: 22px;
+      margin: 15px 0 10px;
+      color: #004080;
+    }
+    .hero p {
+      font-size: 16px;
+      margin: 10px 0 20px;
+      color: #004080;
+    }
+    .hero button {
+      background-color: #cc0000;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+    .hero button:hover { background-color: #a30000; }
+    .loading {
+      font-size: 16px;
+      color: #333;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .spinner {
+      border: 3px solid #fff;
+      border-top: 3px solid #004080;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 10px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    #map {
+      width: 90%;
+      height: 350px;
+      margin: 20px auto;
+      border: 2px solid #003366;
+      border-radius: 4px;
+      background-color: #e6e6e6;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    h2.section-title {
+      font-size: 18px;
+      margin: 20px auto 10px;
+      text-align: center;
+      border-top: 2px dashed #003366;
+      padding-top: 10px;
+      width: 90%;
+      color: #004080;
+    }
+    #closest-resource-wrapper,
+    #resources-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin: 10px auto;
+      width: 90%;
+    }
+    .closest-resource,
+    .resource-column {
+      flex: 1 1 calc(33.33% - 10px);
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .closest-resource { text-align: center; }
+    .closest-resource h3,
+    .resource-column h3 {
+      font-size: 16px;
+      margin: 5px 0;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+      color: #004080;
+    }
+    .resource-column ul {
+      list-style-type: disc;
+      margin: 5px 15px;
+      padding: 0;
+    }
+    .resource-column li {
+      margin: 3px 0;
+      font-size: 14px;
+    }
+    .no-resources {
+      text-align: center;
+      font-size: 16px;
+      color: #a00;
+      margin: 20px auto;
+    }
+    footer {
+      background-color: #004080;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+      border-top: 2px solid #003366;
+      margin-top: 30px;
+      font-size: 12px;
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @media (max-width: 768px) {
+      #closest-resource-wrapper,
+      #resources-wrapper {
+        flex-direction: column;
+        align-items: center;
+      }
+      .closest-resource, .resource-column {
+        flex: 1 1 90%;
+      }
+      #map { width: 95%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Help & Mitigation Center</h1>
+    <!-- Added Navigation Dashboard -->
+    <nav>
+      <ul>
+        <li><a href="homepage.html">Home</a></li>
+        <li><a href="map.html">Map</a></li>
+        <li><a href="resources.html">Resources</a></li>
+        <li><a href="chatbot.html">Chatbot</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+    <button onclick="locateUser()">Find Help Now</button>
+    <br><br>
+    <label for="radius">Select Search Radius (km):</label>
+    <select id="radius" onchange="updateResources()">
+      <option value="5000">5 km</option>
+      <option value="10000" selected>10 km</option>
+      <option value="20000">20 km</option>
+      <option value="50000">50 km</option>
+    </select>
+  </header>
+
+  <div id="sidebar" class="sidebar">
+    <span class="closebtn" onclick="closeSidebar()">&times;</span>
+    <a href="homepage.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </div>
+  <button id="openSidebarBtn" onclick="openSidebar()">☰</button>
+
+  <section class="hero">
+    <h2>Real-time Assistance</h2>
+    <p>Locate nearby help centers quickly.</p>
+    <button onclick="locateUser()">Use My Location</button>
+    <br><br>
+    <!-- Manual location search feature for India -->
+    <p>Or enter your location manually:</p>
+    <div style="margin-bottom: 10px;">
+      <label for="manual-country">Country:</label>
+      <select id="manual-country">
+        <option value="India" selected>India</option>
+      </select>
+    </div>
+    <div style="margin-bottom: 10px;">
+      <label for="manual-state">State:</label>
+      <select id="manual-state">
+        <option value="">Select state</option>
+        <option value="Andhra Pradesh">Andhra Pradesh</option>
+        <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+        <option value="Assam">Assam</option>
+        <option value="Bihar">Bihar</option>
+        <option value="Chhattisgarh">Chhattisgarh</option>
+        <option value="Goa">Goa</option>
+        <option value="Gujarat">Gujarat</option>
+        <option value="Haryana">Haryana</option>
+        <option value="Himachal Pradesh">Himachal Pradesh</option>
+        <option value="Jharkhand">Jharkhand</option>
+        <option value="Karnataka">Karnataka</option>
+        <option value="Kerala">Kerala</option>
+        <option value="Madhya Pradesh">Madhya Pradesh</option>
+        <option value="Maharashtra">Maharashtra</option>
+        <option value="Manipur">Manipur</option>
+        <option value="Meghalaya">Meghalaya</option>
+        <option value="Mizoram">Mizoram</option>
+        <option value="Nagaland">Nagaland</option>
+        <option value="Odisha">Odisha</option>
+        <option value="Punjab">Punjab</option>
+        <option value="Rajasthan">Rajasthan</option>
+        <option value="Sikkim">Sikkim</option>
+        <option value="Tamil Nadu">Tamil Nadu</option>
+        <option value="Telangana">Telangana</option>
+        <option value="Tripura">Tripura</option>
+        <option value="Uttar Pradesh">Uttar Pradesh</option>
+        <option value="Uttarakhand">Uttarakhand</option>
+        <option value="West Bengal">West Bengal</option>
+        <option value="Delhi">Delhi</option>
+        <option value="Chandigarh">Chandigarh</option>
+        <option value="Puducherry">Puducherry</option>
+        <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+        <option value="Lakshadweep">Lakshadweep</option>
+        <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+      </select>
+    </div>
+    <div style="margin-bottom: 10px;">
+      <label for="manual-city">City:</label>
+      <input type="text" id="manual-city" placeholder="Enter city">
+    </div>
+    <button onclick="searchLocation()">Search</button>
+    <p id="manual-loading-text" class="loading" style="display:none;">Fetching location...</p>
+    <!-- End manual location search feature -->
+    <p id="loading-text" class="loading" style="display:none;">Fetching your location...</p>
+    <div id="spinner" class="spinner" style="display:none;"></div>
+  </section>
+
+  <div id="map"></div>
+
+  <h2 class="section-title">Closest Resources By Type</h2>
+  <section id="closest-resource-wrapper"></section>
+
+  <h2 class="section-title">All Nearby Resources</h2>
+  <section id="resources-wrapper"></section>
+
+  <p id="no-resources-text" class="no-resources" style="display:none;">No nearby resources found.</p>
+
+  <footer>
+    <p>&copy; 2025 Help & Mitigation Center. All rights reserved.</p>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <!-- Dynamic Navigation Active Link Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Get the current page file name (e.g., "map.html")
+      var currentPage = window.location.pathname.split("/").pop();
+      // Loop over each navigation link
+      var navLinks = document.querySelectorAll("header nav ul li a");
+      navLinks.forEach(function(link) {
+        // Remove any hardcoded "active" class
+        link.classList.remove("active");
+        // Get the href attribute of the link
+        var linkPage = link.getAttribute("href");
+        // If the current page matches the link's href, add "active" class
+        if ((currentPage === "" && linkPage === "homepage.html") || (linkPage === currentPage)) {
+          link.classList.add("active");
+        }
+      });
+    });
+  </script>
+  <script>
+    let userLat, userLon, map, resourceMarkers;
+
+    function initializeMap(lat, lon) {
+      if (!map) {
+        map = L.map('map').setView([lat, lon], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        resourceMarkers = L.layerGroup().addTo(map);
+      } else {
+        map.setView([lat, lon], 13);
+        resourceMarkers.clearLayers();
+      }
+      L.marker([lat, lon]).addTo(map)
+        .bindPopup("Your Location")
+        .openPopup();
+    }
+
+    function haversine(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = ((lat2 - lat1) * Math.PI) / 180;
+      const dLon = ((lon2 - lon1) * Math.PI) / 180;
+      const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1 * Math.PI / 180) *
+                Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    function locateUser() {
+      const loadingText = document.getElementById("loading-text");
+      const spinner = document.getElementById("spinner");
+      loadingText.style.display = "block";
+      spinner.style.display = "block";
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            loadingText.style.display = "none";
+            spinner.style.display = "none";
+            userLat = position.coords.latitude;
+            userLon = position.coords.longitude;
+            initializeMap(userLat, userLon);
+            fetchNearbyResources(userLat, userLon);
+          },
+          error => {
+            loadingText.style.display = "none";
+            spinner.style.display = "none";
+            alert("Unable to retrieve location. Please enable location services.");
+          }
+        );
+      } else {
+        loadingText.style.display = "none";
+        spinner.style.display = "none";
+        alert("Geolocation is not supported by your browser.");
+      }
+    }
+
+    function updateResources() {
+      if (userLat && userLon) {
+        fetchNearbyResources(userLat, userLon);
+      }
+    }
+
+    function fetchNearbyResources(lat, lon) {
+      const radius = document.getElementById("radius").value;
+      const resourcesWrapper = document.getElementById("resources-wrapper");
+      const closestResourceWrapper = document.getElementById("closest-resource-wrapper");
+      resourcesWrapper.innerHTML = "";
+      closestResourceWrapper.innerHTML = "";
+      document.getElementById("no-resources-text").style.display = "none";
+      
+      const query = `
+        [out:json];
+        (
+          nwr(around:${radius}, ${lat}, ${lon})["amenity"="hospital"];
+          nwr(around:${radius}, ${lat}, ${lon})["emergency"="ambulance_station"];
+          nwr(around:${radius}, ${lat}, ${lon})["amenity"="police"];
+          nwr(around:${radius}, ${lat}, ${lon})["amenity"="fire_station"];
+          nwr(around:${radius}, ${lat}, ${lon})["amenity"="shelter"];
+          nwr(around:${radius}, ${lat}, ${lon})["amenity"="food_bank"];
+        );
+        out center;
+      `;
+      const overpassURL = "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query);
+      document.getElementById("spinner").style.display = "block";
+      
+      fetch(overpassURL)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("spinner").style.display = "none";
+          if (!data.elements || data.elements.length === 0) {
+            document.getElementById("no-resources-text").style.display = "block";
+            return;
+          }
+          let seenLocations = new Set();
+          let categorizedResources = {};
+          let closestResources = {
+            hospital: null,
+            ambulance: null,
+            police: null,
+            fire_station: null,
+            shelter: null,
+            food_bank: null
+          };
+          let minDistances = {
+            hospital: Infinity,
+            ambulance: Infinity,
+            police: Infinity,
+            fire_station: Infinity,
+            shelter: Infinity,
+            food_bank: Infinity
+          };
+          
+          data.elements.forEach(element => {
+            let resourceType = element.tags.amenity || element.tags.emergency || "Help Center";
+            let key = resourceType;
+            let displayType = resourceType;
+            if (resourceType === "ambulance_station") {
+              key = "ambulance";
+              displayType = "Ambulance Station";
+            }
+            let name = element.tags.name || "Unknown Resource";
+            let latVal = element.lat || (element.center ? element.center.lat : null);
+            let lonVal = element.lon || (element.center ? element.center.lon : null);
+            let phone = element.tags.phone || "Contact details not available";
+            if (latVal !== null && lonVal !== null) {
+              const locKey = `${latVal},${lonVal}`;
+              if (seenLocations.has(locKey)) return;
+              seenLocations.add(locKey);
+              const distance = haversine(userLat, userLon, latVal, lonVal);
+              L.marker([latVal, lonVal])
+                .addTo(resourceMarkers)
+                .bindPopup(`<b>${name}</b><br>${displayType}<br>Phone: ${phone}`);
+              if (distance < minDistances[key]) {
+                minDistances[key] = distance;
+                closestResources[key] = { name, type: displayType, lat: latVal, lon: lonVal, phone, distance };
+              }
+              if (!categorizedResources[key]) {
+                categorizedResources[key] = [];
+              }
+              categorizedResources[key].push({
+                name,
+                type: displayType,
+                lat: latVal,
+                lon: lonVal,
+                phone,
+                link: `<a href="https://www.openstreetmap.org/?mlat=${latVal}&mlon=${lonVal}&zoom=15" target="_blank">${name}</a>`
+              });
+            }
+          });
+          
+          const resourceTypes = [
+            { key: "hospital", label: "Hospitals" },
+            { key: "ambulance", label: "Ambulance Stations" },
+            { key: "police", label: "Police Stations" },
+            { key: "fire_station", label: "Fire Stations" },
+            { key: "shelter", label: "Shelters" },
+            { key: "food_bank", label: "Food Banks" }
+          ];
+          
+          resourceTypes.forEach(resource => {
+            if (closestResources[resource.key]) {
+              closestResourceWrapper.innerHTML += `
+                <div class="closest-resource">
+                  <h3>${closestResources[resource.key].type.toUpperCase()}</h3>
+                  <p><a href="https://www.openstreetmap.org/?mlat=${closestResources[resource.key].lat}&mlon=${closestResources[resource.key].lon}&zoom=15" target="_blank">${closestResources[resource.key].name}</a></p>
+                  <p>Phone: ${closestResources[resource.key].phone}</p>
+                  <p>Distance: ${closestResources[resource.key].distance.toFixed(2)} km</p>
+                </div>
+              `;
+            } else {
+              closestResourceWrapper.innerHTML += `
+                <div class="closest-resource">
+                  <h3>${resource.label.toUpperCase()}</h3>
+                  <p>Resource unavailable in the given radius</p>
+                </div>
+              `;
+            }
+          });
+          
+          resourceTypes.forEach(resource => {
+            let section = document.createElement('div');
+            section.className = 'resource-column';
+            if (categorizedResources[resource.key] && categorizedResources[resource.key].length > 0) {
+              section.innerHTML = `
+                <h3>${resource.label}</h3>
+                <ul>
+                  ${categorizedResources[resource.key].map(res => `<li>${res.link}<br>Phone: ${res.phone}</li>`).join('')}
+                </ul>
+              `;
+            } else {
+              section.innerHTML = `
+                <h3>${resource.label}</h3>
+                <p>No ${resource.label} found</p>
+              `;
+            }
+            resourcesWrapper.appendChild(section);
+          });
+        })
+        .catch(error => {
+          document.getElementById("spinner").style.display = "none";
+          console.error("Error fetching resources:", error);
+          alert("Error fetching data. Please try again later.");
+        });
+    }
+
+    // Manual location search using Country (fixed to India), State (dropdown), and City (manual)
+    function searchLocation() {
+      const manualLoadingText = document.getElementById("manual-loading-text");
+      manualLoadingText.style.display = "block";
+      
+      const country = document.getElementById("manual-country").value.trim();
+      const state = document.getElementById("manual-state").value.trim();
+      const city = document.getElementById("manual-city").value.trim();
+      
+      if (!country || !state || !city) {
+        alert("Please fill in Country, State, and City.");
+        manualLoadingText.style.display = "none";
+        return;
+      }
+      
+      const locationQuery = `${city}, ${state}, ${country}`;
+      const geocodeURL = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationQuery)}`;
+      
+      fetch(geocodeURL)
+        .then(response => response.json())
+        .then(data => {
+          manualLoadingText.style.display = "none";
+          if (data.length === 0) {
+            alert("Location not found. Please try again.");
+            return;
+          }
+          
+          const { lat, lon } = data[0];
+          userLat = parseFloat(lat);
+          userLon = parseFloat(lon);
+          
+          initializeMap(userLat, userLon);
+          fetchNearbyResources(userLat, userLon);
+        })
+        .catch(error => {
+          manualLoadingText.style.display = "none";
+          console.error("Error fetching location:", error);
+          alert("Error fetching location. Please try again.");
+        });
+    }
+
+    // Sidebar functions
+    function openSidebar() {
+      document.getElementById("sidebar").style.right = "0";
+    }
+
+    function closeSidebar() {
+      document.getElementById("sidebar").style.right = "-250px";
+    }
+  </script>
+</body>
+</html>

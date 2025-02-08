@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Disaster Relief Hub - Chatbot</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Base Styles */
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #f2f2f2;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    /* Header & Navigation (consistent with other pages) */
+    header {
+      background-color: #004080;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 2px solid #003366;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    header h1 {
+      font-size: 32px;
+      margin: 5px 0;
+    }
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    nav ul li a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    nav ul li a:hover,
+    nav ul li a.active {
+      background-color: #003366;
+    }
+    /* Chatbot Container */
+    .chat-container {
+      width: 100%;
+      max-width: 500px;
+      margin: 40px auto;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .chat-header {
+      background-color: #004080;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+    }
+    .chat-window {
+      height: 300px;
+      padding: 15px;
+      overflow-y: auto;
+      background-color: #f9f9f9;
+    }
+    .chat-message {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 4px;
+      max-width: 80%;
+      clear: both;
+    }
+    .chat-message.user {
+      background-color: #cc0000;
+      color: #fff;
+      float: right;
+      text-align: right;
+    }
+    .chat-message.bot {
+      background-color: #e5e5e5;
+      color: #333;
+      float: left;
+      text-align: left;
+    }
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      font-size: 16px;
+    }
+    .chat-input button {
+      padding: 15px 20px;
+      border: none;
+      background-color: #004080;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .chat-input button:hover {
+      background-color: #003366;
+    }
+    /* Footer */
+    footer {
+      background-color: #004080;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+      border-top: 2px solid #003366;
+      margin-top: 40px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header & Navigation -->
+  <header>
+    <h1>Disaster Relief Hub</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="map.html">Map</a></li>
+        <li><a href="resources.html">Resources</a></li>
+        <li><a href="chatbot.html" class="active">Chatbot</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <!-- Chatbot Container -->
+  <div class="chat-container">
+    <div class="chat-header">
+      <h2>Assistance Chatbot</h2>
+      <p>Ask me about hospitals, shelters, food, or emergency help!</p>
+    </div>
+    <div class="chat-window" id="chatWindow">
+      <!-- Chat messages will appear here -->
+    </div>
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Type your question here..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Disaster Relief Hub. All rights reserved.</p>
+  </footer>
+  
+  <script>
+    // Send a message from the user and process it
+    function sendMessage() {
+      var inputField = document.getElementById('userInput');
+      var message = inputField.value.trim();
+      if (message === "") return;
+      displayMessage(message, 'user');
+      inputField.value = "";
+      processMessage(message);
+    }
+    
+    // Append a message to the chat window
+    function displayMessage(message, sender) {
+      var chatWindow = document.getElementById('chatWindow');
+      var messageElem = document.createElement('div');
+      messageElem.classList.add('chat-message', sender);
+      messageElem.textContent = message;
+      chatWindow.appendChild(messageElem);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+    
+    // Process the user's input and generate a reply
+    function processMessage(message) {
+      var reply = getBotResponse(message);
+      // Simulate a short delay to mimic processing time
+      setTimeout(function(){
+        displayMessage(reply, 'bot');
+      }, 500);
+    }
+    
+    // Basic rule-based logic to generate a reply
+    function getBotResponse(message) {
+      message = message.toLowerCase();
+      
+      if (message.includes("help") || message.includes("assistance")) {
+        return "I'm here to help! Could you please specify what type of assistance you need—medical, shelter, food, or emergency services?";
+      }
+      if (message.includes("hospital") || message.includes("medical")) {
+        return "For medical help, please check our resources for nearby hospitals and clinics.";
+      }
+      if (message.includes("shelter")) {
+        return "If you need shelter assistance, please visit our resources page to find available shelters.";
+      }
+      if (message.includes("food")) {
+        return "We can help you find food banks and local food assistance programs. Please refer to our resources page.";
+      }
+      if (message.includes("emergency") || message.includes("urgent")) {
+        return "For immediate emergencies, please call your local emergency services right away.";
+      }
+      return "I'm sorry, I don't have information on that. Could you ask about hospitals, shelters, food, or emergency services?";
+    }
+  </script>
+</body>
+</html>

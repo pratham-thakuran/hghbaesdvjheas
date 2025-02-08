@@ -1,0 +1,257 @@
+\<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emergency Location Share | Disaster Relief Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    /* Base Styles */
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #f8f8f8;
+      color: #000;
+      margin: 0;
+      padding: 0;
+    }
+    
+    /* Header and Navigation */
+    header {
+      background-color: #004080;
+      color: #fff;
+      padding: 15px 10px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    header h1 {
+      font-size: 32px;
+      margin: 5px 0;
+    }
+    nav ul {
+      list-style: none;
+      margin: 10px 0 0 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    nav ul li {
+      margin: 0 10px;
+    }
+    nav ul li a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 16px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    nav ul li a:hover,
+    nav ul li a.active {
+      background-color: #003366;
+    }
+    
+    /* Sidebar for Mobile */
+    .sidebar {
+      height: 100%;
+      width: 250px;
+      position: fixed;
+      right: -250px;
+      top: 0;
+      background-color: #004080;
+      z-index: 2000;
+      overflow-x: hidden;
+      transition: 0.5s;
+      padding-top: 60px;
+    }
+    .sidebar a {
+      padding: 10px 20px;
+      text-decoration: none;
+      font-size: 20px;
+      color: #fff;
+      display: block;
+      transition: 0.3s;
+    }
+    .sidebar a:hover {
+      background-color: #003366;
+    }
+    .sidebar .closebtn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 36px;
+    }
+    #openSidebarBtn {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #004080;
+      color: #fff;
+      border: none;
+      padding: 10px 12px;
+      font-size: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 2001;
+    }
+    @media (max-width: 768px) {
+      nav ul { display: none; }
+      #openSidebarBtn { display: block; }
+    }
+    
+    /* Emergency Section */
+    .emergency-section {
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .emergency-section h2 {
+      font-size: 28px;
+      color: #004080;
+      margin-bottom: 20px;
+    }
+    .emergency-section p {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    .emergency-form {
+      max-width: 400px;
+      margin: 0 auto;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .emergency-form label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    .emergency-form input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    .emergency-form button {
+      width: 100%;
+      padding: 12px;
+      background-color: #cc0000;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .emergency-form button:hover {
+      background-color: #a30000;
+    }
+    
+    /* Footer */
+    footer {
+      background-color: #004080;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+      font-size: 16px;
+      border-top: 2px solid #003366;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header and Navigation -->
+  <header>
+    <h1>Disaster Relief Hub</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="map.html">Map</a></li>
+        <li><a href="resources.html">Resources</a></li>
+        <li><a href="chatbot.html">Chatbot</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+  <button id="openSidebarBtn" onclick="openSidebar()">☰</button>
+  <div id="sidebar" class="sidebar">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeSidebar()">&times;</a>
+    <a href="index.html">Home</a>
+    <a href="map.html">Map</a>
+    <a href="resources.html">Resources</a>
+    <a href="chatbot.html">Chatbot</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </div>
+  
+  <!-- Emergency Section -->
+  <section class="emergency-section">
+    <h2>Emergency Location Share</h2>
+    <p>
+      Enter the contact number you want to message (in international format, without the "+" sign), then click the button below.
+    </p>
+    <div class="emergency-form">
+      <label for="contactInput">Contact Number:</label>
+      <input type="text" id="contactInput" placeholder="e.g. 1234567890" />
+      <button id="emergencyBtn">Send Emergency Location</button>
+    </div>
+  </section>
+  
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Help &amp; Mitigation Center. All rights reserved.</p>
+  </footer>
+  
+  <script>
+    // Emergency Button Functionality
+    document.getElementById('emergencyBtn').addEventListener('click', function() {
+      // Retrieve the contact number entered by the user
+      const contactNumber = document.getElementById('contactInput').value.trim();
+      
+      if (!contactNumber) {
+        alert("Please enter a valid contact number.");
+        return;
+      }
+      
+      if (navigator.geolocation) {
+        // Get the user's current location
+        navigator.geolocation.getCurrentPosition(function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          // Generate a Google Maps link for the current coordinates
+          const mapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+          // Create the emergency message
+          const message = `Emergency! My current location is: ${mapsLink}`;
+          // Construct the WhatsApp URL with the contact number and pre-filled message
+          const whatsappUrl = `https://wa.me/${contactNumber}?text=${encodeURIComponent(message)}`;
+          // Open WhatsApp (or WhatsApp Web) in a new tab/window
+          window.open(whatsappUrl, '_blank');
+        }, function(error) {
+          alert('Error retrieving location: ' + error.message);
+        }, { enableHighAccuracy: true });
+      } else {
+        alert("Geolocation is not supported by your browser.");
+      }
+    });
+    
+    // Sidebar Functions for Mobile Navigation
+    function openSidebar() {
+      document.getElementById("sidebar").style.right = "0";
+    }
+    
+    function closeSidebar() {
+      document.getElementById("sidebar").style.right = "-250px";
+    }
+  </script>
+</body>
+</html>
